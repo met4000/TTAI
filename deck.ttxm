@@ -1,5 +1,0 @@
-<?xml version="1.0"?>
-<deck>
-  <card name="bob" s1="12" s2="120" s3="30"/>
-	<card name="frank" s1="33" s2="55" s3="49"/>
-</deck>

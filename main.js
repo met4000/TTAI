@@ -25,19 +25,39 @@ function printFile (evt) {
 						xml.loadXML(event.target.result);
 				}
 				
-				_("disp").innerHTML = "<table id=\"disptable\"><tr><th colspan=\"4\">Cards</th></tr><tr><th>Name</th><th>Stat 1</th><th>Stat 2</th><th>Stat 3</th></tr></table>";
+				var root = xml.getElementsByTagName("deck")[0];
+				var append = "<table id=\"disptable\"><tr><th colspan=\"7\">" + root.getAttribute("name") + "</th></tr><tr>";
+				for (var s = 0; s < 7; s++)
+					append += "<th>" + (!s ? "ID" : (!(s - 1) ? "Name" : root.getAttribute("s" + (s - 1)))) + "</th>";
+				_("disp").innerHTML = append + "</tr></table>";
+				
 				var disp = _("disptable");
-				for (var i = 0, ca = xml.getElementsByTagName("card"); i < ca.length; i++) {
-					disp.innerHTML += "<tr><td>"
-						+ ca[i].getAttribute("name") + "</td><td>"
-						+ ca[i].getAttribute("s1") + "</td><td>"
-						+ ca[i].getAttribute("s2") + "</td><td>"
-						+ ca[i].getAttribute("s3") + "</td></tr>";
-					for (var s = 0; s < 3; s++) {
-						
-					}
+				var maxi = [[]], maxv = [];
+				var ca = xml.getElementsByTagName("card");
+				for (var x = 0; x < 5; x++) {
+					maxv[x] = 0;
+					maxi[x] = [];
 				}
-				_("disp").innerHTML += "<span>Deck Analysis:<span></span><br>Highest:<br><ul><li>Stat 1: " + max[0] + " (" + maxv[0] + ")</li><li>Stat 2: " + max[1] + " (" + maxv[1] + ")</li><li>Stat 3: " + max[2] + " (" + maxv[2] + ")</li></ul>";
+				for (var i = 0; i < ca.length; i++) {
+					var append = "<tr>";
+					for (var s = 0; s < 7; s++) {
+						append += "<td>" + (!s ? i : ca[i].getAttribute(!(s - 1) ? "name" : "s" + (s - 1))) + "</td>";
+						if (s > 1) {
+							if (ca[i].getAttribute("s" + (s - 1)) > maxv[s - 2]) {
+								maxi[s - 2] = [i];
+								maxv[s - 2] = ca[i].getAttribute("s" + (s - 1));
+							} else if (ca[i].getAttribute("s" + (s - 1)) == maxv[s - 2])
+								maxi[s - 2].push(i);
+						}
+					}
+					disp.innerHTML += append + "</tr>";
+				}
+				disp.innerHTML += "<tr><th colspan=\"7\">Deck Analysis</th></tr>";
+				var append = "<tr>";
+				for (var s = 0; s < 6; s++) {
+					append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Highest" : (maxi[s - 1].join(", ") + " (" + maxv[s - 1] + ")")) + "</td>";
+				}
+				disp.innerHTML += append + "</tr>";
 			} else {
 				alert("Invalid file format: must be .ttxm");
 				_("deckfile").value = "";
