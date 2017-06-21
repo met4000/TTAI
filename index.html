@@ -1,10 +1,29 @@
 <html>
-  <head>
-	  <title>TTAI</title>
+	<head>
+		<title>TTAI</title>
 		<script src="main.js"></script>
+		<style>
+			table, th, td {
+				border: 1px solid black;
+				border-collapse: collapse;
+			}
+		</style>
 	</head>
 	<body>
-	  <input type="text" style="width: 512px; heigth: 512px">
-	  <textarea id="disp"></textarea>
+		<input type="file" id="deckfile" accept=".ttxm"><br>
+		<div id="disp">
+			<table id="disptable">
+				<tr>
+					<th colspan="4">Cards</th>
+				</tr>
+				<tr>
+					<th>Name</th>
+					<th>Stat 1</th>
+					<th>Stat 2</th>
+					<th>Stat 3</th>
+				</tr>
+			</table>
+		</div><br>
+		<a id="download" onclick="downloadXML()" download="deck.ttxm" draggable="true" class="dragout">Download</a>
 	</body>
 </html>
