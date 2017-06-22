@@ -34,20 +34,20 @@ function printFile (evt) {
 				
 				var disp = _("disptable");
 				var maxi = [[]], maxv = [];
-				var ca = xml.getElementsByTagName("card");
+				var c = xml.getElementsByTagName("card");
 				for (var x = 0; x < 5; x++) {
 					maxv[x] = 0;
 					maxi[x] = [];
 				}
-				for (var i = 0; i < ca.length; i++) {
+				for (var i = 0; i < c.length; i++) {
 					var append = "<tr>";
 					for (var s = 0; s < 7; s++) {
-						append += "<td>" + (!s ? i : ("<input type=\"text\" id=\"" + i + "" + (s - 1) + "\" placeholder=\"" + ca[i].getAttribute(!(s - 1) ? "name" : "s" + (s - 1)) + "\" onchange=\"updateXML()\">")) + "</td>";
+						append += "<td>" + (!s ? i : ("<input type=\"text\" id=\"" + i + "" + (s - 1) + "\" placeholder=\"" + c[i].getAttribute(!(s - 1) ? "name" : "s" + (s - 1)) + "\" onchange=\"updateXML();analyseDeck()\">")) + "</td>";
 						if (s > 1) {
-							if (ca[i].getAttribute("s" + (s - 1)) > maxv[s - 2]) {
+							if (c[i].getAttribute("s" + (s - 1)) > maxv[s - 2]) {
 								maxi[s - 2] = [i];
-								maxv[s - 2] = ca[i].getAttribute("s" + (s - 1));
-							} else if (ca[i].getAttribute("s" + (s - 1)) == maxv[s - 2])
+								maxv[s - 2] = c[i].getAttribute("s" + (s - 1));
+							} else if (c[i].getAttribute("s" + (s - 1)) == maxv[s - 2])
 								maxi[s - 2].push(i);
 						}
 					}
@@ -65,6 +65,41 @@ function printFile (evt) {
 			}
 		}
 		reader.readAsText(file);
+}
+
+function analyseDeck() {
+	var disp = _("disptable");
+	var maxi = [[]], maxv = [];
+	for (var x = 0; x < 5; x++) {
+		maxv[x] = 0;
+		maxi[x] = [];
+	}
+	var c = xml.getElementsByTagName("card");
+	
+	disp.removeChild(disp.getElementsByTagName("tbody")[disp.getElementsByTagName("tbody").length - 1]);
+	disp.removeChild(disp.getElementsByTagName("tbody")[disp.getElementsByTagName("tbody").length - 1]);
+	
+	for (var i = 0; i < c.length; i++) {
+		for (var s = 0; s < 6; s++) {
+			if (_(i + "" + s).value !== "")
+				_(i + "" + s).setAttribute("value", _(i + "" + s).value);
+			if (_(i + "" + s).value === "" && _(i + "" + s).hasAttribute("value"))
+				_(i + "" + s).removeAttribute("value");
+			if (s > 1) {
+				if (c[i].getAttribute("s" + (s - 1)) > maxv[s - 2]) {
+					maxi[s - 2] = [i];
+					maxv[s - 2] = c[i].getAttribute("s" + (s - 1));
+				} else if (c[i].getAttribute("s" + (s - 1)) == maxv[s - 2])
+					maxi[s - 2].push(i);
+			}
+		}
+	}
+	disp.innerHTML += "<tr><th colspan=\"7\">Deck Analysis</th></tr>";
+	var append = "<tr>";
+	for (var s = 0; s < 6; s++) {
+		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Highest" : (maxi[s - 1].join(", ") + " (" + maxv[s - 1] + ")")) + "</td>";
+	}
+	disp.innerHTML += append + "</tr>";
 }
 
 function updateXML() {
