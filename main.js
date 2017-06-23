@@ -27,21 +27,21 @@ function printFile (evt) {
 				}
 				
 				var root = xml.getElementsByTagName("deck")[0];
-				var append = "<table id=\"disptable\"><tr><th colspan=\"7\"><input type=\"text\" id=\"name\" value=\"" + root.getAttribute("name") + "\" placeholder=\"Deck Name\"></th></tr><tr>";
-				for (var s = 0; s < 7; s++)
+				var append = "<table id=\"disptable\"><tr><th colspan=\"8\"><input type=\"text\" id=\"name\" value=\"" + root.getAttribute("name") + "\" placeholder=\"Deck Name\"></th></tr><tr>";
+				for (var s = 0; s < 8; s++)
 					append += "<th>" + (!s ? "ID" : (!(s - 1) ? "Name" : ("<input type=\"text\" id=\"s" + (s - 1) + "\" value=\"" + root.getAttribute("s" + (s - 1)) + "\" placeholder=\"Stat " + (s - 1) + "\">"))) + "</th>";
 				_("disp").innerHTML = append + "</tr></table>";
 				
 				var disp = _("disptable");
 				var maxi = [[]], maxv = [];
 				var c = xml.getElementsByTagName("card");
-				for (var x = 0; x < 5; x++) {
+				for (var x = 0; x < 6; x++) {
 					maxv[x] = 0;
 					maxi[x] = [];
 				}
 				for (var i = 0; i < c.length; i++) {
 					var append = "<tr>";
-					for (var s = 0; s < 7; s++) {
+					for (var s = 0; s < 8; s++) {
 						append += "<td>" + (!s ? i : ("<input type=\"text\" id=\"" + i + "" + (s - 1) + "\" placeholder=\"" + c[i].getAttribute(!(s - 1) ? "name" : "s" + (s - 1)) + "\" onchange=\"updateXML();analyseDeck()\">")) + "</td>";
 						if (s > 1) {
 							if (c[i].getAttribute("s" + (s - 1)) > maxv[s - 2]) {
@@ -53,11 +53,10 @@ function printFile (evt) {
 					}
 					disp.innerHTML += append + "</tr>";
 				}
-				disp.innerHTML += "<tr><th colspan=\"7\">Deck Analysis</th></tr>";
+				disp.innerHTML += "<tr><th colspan=\"8\">Deck Analysis</th></tr>";
 				var append = "<tr>";
-				for (var s = 0; s < 6; s++) {
+				for (var s = 0; s < 7; s++)
 					append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Highest" : (maxi[s - 1].join(", ") + " (" + maxv[s - 1] + ")")) + "</td>";
-				}
 				disp.innerHTML += append + "</tr>";
 				
 				disp = _("disp");
@@ -82,14 +81,19 @@ function analyseDeck() {
 function analyseDeckNR() {
 	var disp = _("disptable");
 	var maxi = [[]], maxv = [];
-	for (var x = 0; x < 5; x++) {
+	for (var x = 0; x < 6; x++) {
 		maxv[x] = 0;
 		maxi[x] = [];
 	}
 	var c = xml.getElementsByTagName("card");
 	
+	for (var s = 1; s < 7; s++) {
+		if (_("s" + s).value !== "")
+			_("s" + s).setAttribute("value", _("s" + s).value);
+	}
+	
 	for (var i = 0; i < c.length; i++) {
-		for (var s = 0; s < 6; s++) {
+		for (var s = 0; s < 7; s++) {
 			if (_(i + "" + s).value !== "")
 				_(i + "" + s).setAttribute("value", _(i + "" + s).value);
 			if (_(i + "" + s).value === "" && _(i + "" + s).hasAttribute("value"))
@@ -103,9 +107,9 @@ function analyseDeckNR() {
 			}
 		}
 	}
-	disp.innerHTML += "<tr><th colspan=\"7\">Deck Analysis</th></tr>";
+	disp.innerHTML += "<tr><th colspan=\"8\">Deck Analysis</th></tr>";
 	var append = "<tr>";
-	for (var s = 0; s < 6; s++) {
+	for (var s = 0; s < 7; s++) {
 		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Highest" : (maxi[s - 1].join(", ") + " (" + maxv[s - 1] + ")")) + "</td>";
 	}
 	disp.innerHTML += append + "</tr>";
@@ -123,12 +127,12 @@ function updateXML() {
 	}
 	var deck = xml.getElementsByTagName("deck")[0];
 	deck.setAttribute("name", _("name").itr());
-	for (var s = 0; s < 5; s++)
+	for (var s = 0; s < 6; s++)
 		deck.setAttribute("s" + (s + 1), _("s" + (s + 1)).itr());
 	for (var c = 0; c < _("disptable").getElementsByTagName("tr").length - 4; c++) {
 		var card = deck.appendChild(xml.createElement("card"));
 		card.setAttribute("name", _(c + "0").itr());
-		for (var s = 0; s < 5; s++)
+		for (var s = 0; s < 6; s++)
 			card.setAttribute("s" + (s + 1), _(c + "" + (s + 1)).itr());
 	}
 }
@@ -149,7 +153,7 @@ function addCard() {
 	disp.removeChild(disp.getElementsByTagName("tbody")[disp.getElementsByTagName("tbody").length - 1]);
 	var append = "<tr>";
 	var i = disp.getElementsByTagName("tbody").length - 1;
-	for (var s = 0; s < 7; s++)
+	for (var s = 0; s < 8; s++)
 		append += "<td>" + (!s ? i : ("<input type=\"text\" id=\"" + i + "" + (s - 1) + "\" placeholder=\"" + (!(s - 1) ? "name" : "s" + (s - 1)) + "\" onchange=\"updateXML();analyseDeck()\">")) + "</td>";
 	disp.innerHTML += append + "</tr>";
 	
@@ -166,7 +170,7 @@ function delCard(index) {
 	disp.removeChild(disp.getElementsByTagName("tbody")[parseInt(index) + 1]);
 	for (var i = parseInt(index) + 1; i < disp.getElementsByTagName("tbody").length - 2; i++) {
 		disp.getElementsByTagName("tbody")[i].getElementsByTagName("td")[0].innerHTML = i - 1;
-		for (var s = 0; s < 6; s++)
+		for (var s = 0; s < 7; s++)
 			_(i + "" + s).setAttribute("id", (i - 1) + "" + s);
 	}
 	

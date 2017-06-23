@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<deck name="peoplz" s1="IQ" s2="height" s3="weight" s4="age" s5="EQ">
-  <card name="bob" s1="12" s2="120" s3="60" s4="45" s5="60"/>
-	<card name="frank" s1="33" s2="115" s3="89" s4="28" s5="60"/>
+<deck name="peoplz" s1="IQ" s2="height" s3="weight" s4="age" s5="EQ" s6="ST">
+  <card name="bob" s1="12" s2="120" s3="60" s4="45" s5="60" s6="45"/>
+	<card name="frank" s1="33" s2="115" s3="89" s4="28" s5="60" s6="35"/>
 </deck>
