@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<deck name="blank template" s1="Stat 1" s2="Stat 2" s3="Stat 3" s4="Stat 4" s5="Stat 5" s6="Stat 6">
+	<card name="A Card" s1="9000" s2="9000" s3="9000" s4="9000" s5="9000" s6="9000"/>
+</deck>

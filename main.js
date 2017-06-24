@@ -33,31 +33,16 @@ function printFile (evt) {
 				_("disp").innerHTML = append + "</tr></table>";
 				
 				var disp = _("disptable");
-				var maxi = [[]], maxv = [];
 				var c = xml.getElementsByTagName("card");
-				for (var x = 0; x < 6; x++) {
-					maxv[x] = 0;
-					maxi[x] = [];
-				}
 				for (var i = 0; i < c.length; i++) {
 					var append = "<tr>";
 					for (var s = 0; s < 8; s++) {
 						append += "<td>" + (!s ? i : ("<input type=\"text\" id=\"" + i + "" + (s - 1) + "\" placeholder=\"" + c[i].getAttribute(!(s - 1) ? "name" : "s" + (s - 1)) + "\" onchange=\"updateXML();analyseDeck()\">")) + "</td>";
-						if (s > 1) {
-							if (c[i].getAttribute("s" + (s - 1)) > maxv[s - 2]) {
-								maxi[s - 2] = [i];
-								maxv[s - 2] = c[i].getAttribute("s" + (s - 1));
-							} else if (c[i].getAttribute("s" + (s - 1)) == maxv[s - 2])
-								maxi[s - 2].push(i);
-						}
 					}
 					disp.innerHTML += append + "</tr>";
 				}
-				disp.innerHTML += "<tr><th colspan=\"8\">Deck Analysis</th></tr>";
-				var append = "<tr>";
-				for (var s = 0; s < 7; s++)
-					append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Highest" : (maxi[s - 1].join(", ") + " (" + maxv[s - 1] + ")")) + "</td>";
-				disp.innerHTML += append + "</tr>";
+				
+				analyseDeckNR();
 				
 				disp = _("disp");
 				disp.innerHTML += "<input id=\"new\" type=\"button\" onclick=\"addCard()\" value=\"Add Card\">";
@@ -80,10 +65,13 @@ function analyseDeck() {
 
 function analyseDeckNR() {
 	var disp = _("disptable");
-	var maxi = [[]], maxv = [];
+	var maxi = [[]], maxv = [], mini = [[]], minv = [], varr = [[]];
 	for (var x = 0; x < 6; x++) {
 		maxv[x] = 0;
 		maxi[x] = [];
+		minv[x] = Infinity;
+		mini[x] = [];
+		varr[x] = [];
 	}
 	var c = xml.getElementsByTagName("card");
 	
@@ -98,19 +86,74 @@ function analyseDeckNR() {
 				_(i + "" + s).setAttribute("value", _(i + "" + s).value);
 			if (_(i + "" + s).value === "" && _(i + "" + s).hasAttribute("value"))
 				_(i + "" + s).removeAttribute("value");
-			if (s > 1) {
-				if (c[i].getAttribute("s" + (s - 1)) > maxv[s - 2] && parseInt(c[i].getAttribute("s" + (s - 1))) > -1) {
-					maxi[s - 2] = [i];
-					maxv[s - 2] = c[i].getAttribute("s" + (s - 1));
-				} else if (c[i].getAttribute("s" + (s - 1)) == maxv[s - 2])
-					maxi[s - 2].push(i);
+			if (!!s) {
+				varr[s - 1][i] = parseInt(c[i].getAttribute("s" + s));
+				if (parseInt(c[i].getAttribute("s" + s)) > maxv[s - 1] && parseInt(c[i].getAttribute("s" + s)) > -1) {
+					maxi[s - 1] = [i];
+					maxv[s - 1] = c[i].getAttribute("s" + s);
+				} else if (c[i].getAttribute("s" + s) == maxv[s - 1])
+					maxi[s - 1].push(i);
+				else if (parseInt(c[i].getAttribute("s" + s)) < minv[s - 1] && parseInt(c[i].getAttribute("s" + s)) > -1) {
+					mini[s - 1] = [i];
+					minv[s - 1] = c[i].getAttribute("s" + s);
+				} else if (c[i].getAttribute("s" + s) == minv[s - 1])
+					mini[s - 1].push(i);
 			}
 		}
 	}
 	disp.innerHTML += "<tr><th colspan=\"8\">Deck Analysis</th></tr>";
+	
+	//Max
 	var append = "<tr>";
 	for (var s = 0; s < 7; s++) {
-		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Highest" : (maxi[s - 1].join(", ") + " (" + maxv[s - 1] + ")")) + "</td>";
+		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Max" : (maxi[s - 1].join(", ") + " (" + maxv[s - 1] + ")")) + "</td>";
+	}
+	disp.innerHTML += append + "</tr>";
+	
+	//Min
+	var append = "<tr>";
+	for (var s = 0; s < 7; s++) {
+		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Min" : (mini[s - 1].join(", ") + " (" + minv[s - 1] + ")")) + "</td>";
+	}
+	disp.innerHTML += append + "</tr>";
+	
+	//Avg
+	var append = "<tr>";
+	for (var s = 0, rt = 0; s < 7; s++) {
+		if (!!s)
+			for (var i = 0; i < varr[s - 1].length; i++)
+				rt += varr[s - 1][i];
+		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Mean" : Math.round(rt / varr[s - 1].length)) + "</td>";
+	}
+	disp.innerHTML += append + "</tr>";
+	
+	//Mode
+	var append = "<tr>";
+	for (var s = 0; s < 7; s++) {
+		if (!!s) {
+			var count = [];
+			for (var i = 0; i < varr[s - 1].length; i++)
+				count[i] = 0;
+			for (var i = 0; i < varr[s - 1].length; i++)
+				count[varr[s - 1][i]]++;
+			var m = count.length - 1;
+			for (var i = count.length - 2; i >= 0; i--) {
+				if (count[i] >= count[m])
+					m = i;
+			}
+		}
+		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Mode" : m) + "</td>";
+	}
+	disp.innerHTML += append + "</tr>";
+	
+	//Med.
+	var append = "<tr>";
+	for (var s = 0; s < 7; s++) {
+		if (!!s) {
+			varr[s - 1].sort(function (a, b) { return a - b; });
+			var half = Math.floor(varr[s - 1].length / 2);
+		}
+		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Median" : (varr[s - 1].length % 2 ? varr[s - 1][half] : Math.round(varr[s - 1][half - 1] + varr[s - 1][half]) / 2)) + "</td>";
 	}
 	disp.innerHTML += append + "</tr>";
 }
