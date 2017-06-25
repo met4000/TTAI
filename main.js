@@ -138,6 +138,7 @@ function analyseDeckNR () {
 	
 	//Mode
 	var append = "<tr>";
+	window.m = [];
 	for (var s = 0; s < 7; s++) {
 		if (!!s) {
 			var count = [];
@@ -145,24 +146,26 @@ function analyseDeckNR () {
 				count[i] = 0;
 			for (var i = 0; i < varr[s - 1].length; i++)
 				count[varr[s - 1][i]]++;
-			var m = count.length - 1;
+			m[s - 1] = count.length - 1;
 			for (var i = count.length - 2; i >= 0; i--) {
-				if (count[i] >= count[m])
-					m = i;
+				if (count[i] >= count[m[s - 1]])
+					m[s - 1] = i;
 			}
 		}
-		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Mode" : m) + "</td>";
+		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Mode" : m[s - 1]) + "</td>";
 	}
 	disp.innerHTML += append + "</tr>";
 	
 	//Med.
 	var append = "<tr>";
+	window.mc = [];
 	for (var s = 0; s < 7; s++) {
 		if (!!s) {
 			varr[s - 1].sort(function (a, b) { return a - b; });
 			var half = Math.floor(varr[s - 1].length / 2);
+			mc[s - 1] = varr[s - 1].length % 2 ? varr[s - 1][half] : (Math.round(varr[s - 1][half - 1] + varr[s - 1][half]) / 2);
 		}
-		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Median" : (varr[s - 1].length % 2 ? varr[s - 1][half] : Math.round(varr[s - 1][half - 1] + varr[s - 1][half]) / 2)) + "</td>";
+		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "Median" : mc[s - 1]) + "</td>";
 	}
 	disp.innerHTML += append + "</tr>";
 }
@@ -235,6 +238,8 @@ function delCard (index) {
 }
 
 function analyseCard (name) {
+	var caiTemp = _("cai") ? _("cai").value : "H";
+	
 	var c = xml.getElementsByName(name)[0];
 	var disp = _("searchtable");
 	if (c == undefined) {
@@ -278,7 +283,7 @@ function analyseCard (name) {
 	
 	var append = "<tr>";
 	for (var s = 0; s < 7; s++) {
-		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "s/avg (.3)" : Math.round(c.getAttribute("s" + s) / rt[s - 1] * 1000) / 1000) + "</td>";
+		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "s/a (.3)" : Math.round(c.getAttribute("s" + s) / rt[s - 1] * 1000) / 1000) + "</td>";
 	}
 	disp.innerHTML += append + "</tr>";
 	
@@ -287,9 +292,15 @@ function analyseCard (name) {
 	for (var s = 0; s < 7; s++) {
 		if (!!s)
 			rp[s - 1] = Math.round(Math.round(c.getAttribute("s" + s) / rt[s - 1] * 100) * gp[s - 1]) / 100;
-		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "(RP) Hs/avg (.2)" : rp[s - 1]) + "</td>";
+		append += "<td" + (!s ? " colspan=\"2\"" : "") + ">" + (!s ? "(RP) Hs/a (.2)" : rp[s - 1]) + "</td>";
 	}
 	append += "<td>" + (Math.round(rp.reduce(function (a, b) { return a + b; }, 0) / rp.length * 100) / 100) + "</td>";
+	disp.innerHTML += append + "</tr>";
+	
+	var append = "<tr>";
+	for (var s = 0; s < 7; s++) {
+		append += "<td" + (!s ? " colspan=\"2\"" : "") + " id=\"ca" + s + "\">" + (!s ? "<input id=\"cai\" onchange=\"cardCustom()\" placeholder=\"Custom Stat\"> (.2)" : "") + "</td>";
+	}
 	disp.innerHTML += append + "</tr>";
 	
 	var append = "<tr>";
@@ -304,6 +315,8 @@ function analyseCard (name) {
 	disp.innerHTML += append + "</tr>";
 	
 	_("cardsel").value = name;
+	_("cai").value = caiTemp;
+	cardCustom();
 }
 
 function rankify (val) {
@@ -315,4 +328,37 @@ function rankify (val) {
 	else if (val % 10 == 3)
 		suffix = "rd";
 	return val + suffix;
+}
+
+function cardCustom () {
+	var c = _("cai").value.replace(/ /g, "");
+	var cd = c[0];
+	if (c == "")
+		return;
+	for (var i = 1; i < c.length; i++)
+		cd += "*" + c[i];
+	cd = cd.replace(/\*\*/g, "*");
+	
+	var sArr = ["/", "+", "-", ".", "(", ")"];
+	for (var i = 0; i < sArr.length; i++) {
+		cd = cd.replace(RegExp(("*" + sArr[i]).replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), "g"), sArr[i]);
+		cd = cd.replace(RegExp((sArr[i] + "*").replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), "g"), sArr[i]);
+	}
+	
+	cd = cd.replace(/H/g, "gp[i-1]");
+	cd = cd.replace(/a/g, "rt[i-1]");
+	cd = cd.replace(/m/g, "m[i-1]");
+	cd = cd.replace(/c/g, "mc[i-1]");
+	//cd = cd.replace(/]g/g, "]*g").replace(/]r/g, "]*r").replace(/]m/g, "]*m");
+	for (var s = 1; s < 7; s++) {
+		try {
+			_("ca" + s).innerHTML = Math.round(eval(cd.replace(/i/g, s).replace(/s/g, "xml.getElementsByName(_(\"cardsel\").value)[0].getAttribute(\"s\" + " + s + ")").replace(/]x/g, "]*x")) * 100) / 100;
+//			if (s == 1)
+//				console.log(cd.replace(/i/g, s).replace(/s/g, "xml.getElementsByName(_(\"cardsel\").value)[0].getAttribute(\"s\" + " + s + ")").replace(/]x/g, "]*x"));
+		} catch (err) {
+			_("ca" + s).innerHTML = "-";
+			if (s == 1)
+				console.log(err.toString());
+		}
+	}
 }
