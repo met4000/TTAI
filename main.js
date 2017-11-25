@@ -3,7 +3,6 @@ Element.prototype.itr = function () { return this.value === "" ? this.placeholde
 
 window.onload = function () {
 	_("deckfile").addEventListener("change", printFile, false);
-	printFile({ target: { files: [ "https://met4000.github.io/TTAI/starwars.ttai" ] } });
 };
 
 var fileName = false;
